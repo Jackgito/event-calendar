@@ -23,6 +23,8 @@ public class EventController {
      */
     @PostMapping
     public EventModel createEvent(@RequestBody EventModel event) {
+        System.out.println("Create event: " + event);
+
         return eventRepository.save(event);
     }
 
@@ -55,4 +57,23 @@ public class EventController {
             return ResponseEntity.notFound().build(); // 404
         }
     }
+
+    /**
+     * Updates an existing event.
+     * @param id the ID of the event to update
+     * @param updatedEvent the updated event data
+     * @return the updated event if found, 404 Not Found if not found
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<EventModel> updateEvent(@PathVariable Long id, @RequestBody EventModel updatedEvent) {
+        System.out.println("Received update for event ID " + id + ": " + updatedEvent);
+
+        return eventRepository.findById(id)
+                .map(existingEvent -> {
+                    updatedEvent.setId(id); // Ensure ID stays the same
+                    return ResponseEntity.ok(eventRepository.save(updatedEvent));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }

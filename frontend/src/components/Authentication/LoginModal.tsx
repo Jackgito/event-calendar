@@ -16,6 +16,7 @@ import Divider from "@mui/material/Divider"
 import GoogleIcon from "@mui/icons-material/Google"
 import GitHubIcon from "@mui/icons-material/GitHub"
 import Stack from "@mui/material/Stack"
+import CloseIcon from "@mui/icons-material/Close"
 
 interface LoginModalProps {
   open: boolean
@@ -55,8 +56,7 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
     setPasswordError(!password)
 
     if (email && password) {
-      // Here you would typically handle the login logic
-      // For demo purposes, just close the modal
+
       onClose()
     }
   }
@@ -64,6 +64,18 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   return (
     <Modal open={open} onClose={onClose} aria-labelledby="login-modal-title" aria-describedby="login-modal-description">
       <Box sx={style}>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         <Typography id="login-modal-title" variant="h5" component="h2" gutterBottom>
           Login
         </Typography>
@@ -80,7 +92,6 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
             label="Email Address"
             name="email"
             autoComplete="email"
-            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}

@@ -14,10 +14,12 @@ import ListItemButton from "@mui/material/ListItemButton"
 import ListItemText from "@mui/material/ListItemText"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
-import LoginModal from "./LoginModal"
-import RegisterModal from "./RegisterModal"
+import LoginModal from "./Authentication/LoginModal"
+import RegisterModal from "./Authentication/RegisterModal"
+import { useAuthentication } from '@/context/AuthenticationContext';
+import { logout } from "../utils/authApi"
 
-const navItems = ["Home", "About", "Services", "Contact"]
+const navItems = [];
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -26,6 +28,7 @@ export default function Navbar() {
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  const { isUser, isAdmin, setRole } = useAuthentication()
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState)
@@ -47,11 +50,16 @@ export default function Navbar() {
     setRegisterOpen(false)
   }
 
+  const handleLogout = async () => {
+    logout();
+    setRole("guest");
+  };
+
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
-      <Typography variant="h6" sx={{ my: 2 }}>
-        {/* logo */}
-      </Typography>
+      {/* <Typography variant="h6" sx={{ my: 2 }}>
+        logo
+      </Typography> */}
       <List>
         {navItems.map((item) => (
           <ListItem key={item} disablePadding>
@@ -60,16 +68,26 @@ export default function Navbar() {
             </ListItemButton>
           </ListItem>
         ))}
-        <ListItem disablePadding>
-          <ListItemButton sx={{ textAlign: "center" }} onClick={handleLoginOpen}>
-            <ListItemText primary="Login" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton sx={{ textAlign: "center" }} onClick={handleRegisterOpen}>
-            <ListItemText primary="Register" />
-          </ListItemButton>
-        </ListItem>
+        {(!isUser && !isAdmin) ? (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton sx={{ textAlign: "center" }} onClick={handleLoginOpen}>
+                <ListItemText primary="Login" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton sx={{ textAlign: "center" }} onClick={handleRegisterOpen}>
+                <ListItemText primary="Register" />
+              </ListItemButton>
+            </ListItem>
+          </>
+        ) : (
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }} onClick={handleLogout}>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        )}
       </List>
     </Box>
   )
@@ -92,18 +110,21 @@ export default function Navbar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: "block" }}>
             {/* logo */}
           </Typography>
-          <Box sx={{ display: { xs: "none", md: "block" } }}>
-            {navItems.map((item) => (
-              <Button key={item}>{item}</Button> // Button will now inherit the dark grey text color from the theme
-            ))}
-          </Box>
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, ml: 2 }}>
-            <Button color="inherit" variant="outlined" onClick={handleLoginOpen}>
-              Login
-            </Button>
-            <Button color="secondary" variant="contained" onClick={handleRegisterOpen}>
-              Register
-            </Button>
+            {(!isUser && !isAdmin) ? (
+              <>
+                <Button color="inherit" variant="outlined" onClick={handleLoginOpen}>
+                  Login
+                </Button>
+                <Button color="secondary" variant="contained" onClick={handleRegisterOpen}>
+                  Register
+                </Button>
+              </>
+            ) : (
+              <Button color="inherit" variant="outlined" onClick={handleLogout}>
+                Logout
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </AppBar>

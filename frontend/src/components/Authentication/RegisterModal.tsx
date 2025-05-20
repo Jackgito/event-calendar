@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 
 import { useState } from "react"
@@ -12,13 +10,13 @@ import IconButton from "@mui/material/IconButton"
 import InputAdornment from "@mui/material/InputAdornment"
 import Visibility from "@mui/icons-material/Visibility"
 import VisibilityOff from "@mui/icons-material/VisibilityOff"
-import Divider from "@mui/material/Divider"
-import GoogleIcon from "@mui/icons-material/Google"
-import GitHubIcon from "@mui/icons-material/GitHub"
-import Stack from "@mui/material/Stack"
+import CloseIcon from "@mui/icons-material/Close"
 import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Link from "@mui/material/Link"
+import { useAuthentication } from "../../context/AuthenticationContext"
+import { register } from "../../utils/authApi"
+import { useSnackbar } from '@context/SnackbarContext';
 
 interface RegisterModalProps {
   open: boolean
@@ -40,6 +38,8 @@ const style = {
 }
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
+  const { showSnackbar } = useSnackbar();
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [name, setName] = useState("")
@@ -56,28 +56,47 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
   const handleClickShowPassword = () => setShowPassword((show) => !show)
   const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show)
+  const { setRole } = useAuthentication()
 
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
-    // Validation
-    setNameError(!name)
-    setEmailError(!email)
-    setPasswordError(!password)
-    setConfirmPasswordError(password !== confirmPassword)
-    setTermsError(!agreeToTerms)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (name && email && password && password === confirmPassword && agreeToTerms) {
-      // Here you would typically handle the registration logic
-      console.log("Registration attempt with:", { name, email, password })
-      // For demo purposes, just close the modal
-      onClose()
+    const validName = !!name;
+    const validEmail = isValidEmail(email);
+    const validPassword = !!password;
+    const passwordsMatch = password === confirmPassword;
+    const agreed = agreeToTerms;
+
+    setNameError(!validName);
+    setEmailError(!validEmail);
+    setPasswordError(!validPassword);
+    setConfirmPasswordError(!passwordsMatch);
+    setTermsError(!agreed);
+
+    if (!validName || !validEmail || !validPassword || !passwordsMatch || !agreed) {
+      return;
     }
-  }
+
+    try {
+      const response = await register(name, email, password);
+      if (response?.role === "admin") {
+        setRole("admin");
+      } else if (response?.role === "user") {
+        setRole("user");
+      }
+      onClose();
+    } catch (error) {
+      showSnackbar("Registration failed", "error");
+      console.error(error);
+    }
+  };
+
 
   return (
     <Modal
@@ -87,6 +106,18 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
       aria-describedby="register-modal-description"
     >
       <Box sx={style}>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         <Typography id="register-modal-title" variant="h5" component="h2" gutterBottom>
           Create an Account
         </Typography>
@@ -103,7 +134,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
             label="Full Name"
             name="name"
             autoComplete="name"
-            autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
             error={nameError}
@@ -210,17 +240,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
             Create Account
           </Button>
-
-          <Divider sx={{ my: 3 }}>or register with</Divider>
-
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button variant="outlined" startIcon={<GoogleIcon />}>
-              Google
-            </Button>
-            <Button variant="outlined" startIcon={<GitHubIcon />}>
-              GitHub
-            </Button>
-          </Stack>
         </Box>
       </Box>
     </Modal>

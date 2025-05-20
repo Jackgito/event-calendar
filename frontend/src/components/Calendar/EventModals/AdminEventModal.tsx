@@ -24,6 +24,7 @@ interface CreateEventModalProps {
   onClose: () => void;
   onSave: (eventData: Event) => Promise<void>;
   onDelete: (eventId: string) => Promise<void>;
+  onUpdate: (eventId: string, eventData: Event) => Promise<void>;
   eventToEdit?: Event | null;
 }
 
@@ -34,6 +35,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
   onClose,
   onSave,
   onDelete,
+  onUpdate,
   eventToEdit = null
 }) => {
   const [name, setName] = useState('');
@@ -55,6 +57,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
         setPrice(eventToEdit.price ?? 0);
         setStartTime(dayjs(eventToEdit.startDate).format("HH:mm"));
         setEndTime(dayjs(eventToEdit.endDate).format("HH:mm"));
+
       } else {
         setName('');
         setDescription('');
@@ -66,8 +69,42 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
     }
   }, [open, eventToEdit]);
 
+  useEffect(() => {
+    console.log(startTime);
+  }, [startTime]);
+
   const handleParticipantChange = (_event: React.SyntheticEvent | Event, newValue: number | number[]) => {
     setParticipantLimits(Array.isArray(newValue) ? newValue : [newValue, newValue]);
+  };
+
+
+  const handleUpdate = async () => {
+    if (!name || name.trim().length < 3) {
+      showSnackbar('Event name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    const resolvedStartDate = (startDate ?? dayjs(eventToEdit?.startDate)).hour(Number(startTime.split(":")[0])).minute(Number(startTime.split(":")[1]));
+    const resolvedEndDate = (endDate ?? dayjs(eventToEdit?.endDate)).hour(Number(endTime.split(":")[0])).minute(Number(endTime.split(":")[1]));
+
+    const eventData: Event = {
+      ...eventToEdit,
+      title: name,
+      description,
+      participantLimits,
+      price,
+      startDate: resolvedStartDate,
+      endDate: resolvedEndDate,
+    };
+
+    try {
+      if (eventToEdit?.id) {
+        await onUpdate(eventToEdit.id, eventData);
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSave = async () => {
@@ -76,32 +113,16 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
       return;
     }
 
-    if (startTime >= endTime) {
-      showSnackbar('Start time must be before end time.', 'warning');
-      return;
-    }
-
-    if (price < 0 || price > 1000) {
-      showSnackbar('Price must be between 0 and 1000.', 'warning');
-      return;
-    }
-
-    if (participantLimits[0] > participantLimits[1]) {
-      showSnackbar('Minimum participants cannot exceed maximum.', 'warning');
-      return;
-    }
-
-    // Ensure startDate and endDate are present
-    const resolvedStartDate = startDate ?? eventToEdit?.startDate;
-    const resolvedEndDate = endDate ?? eventToEdit?.endDate;
+    const resolvedStartDate = (startDate ?? dayjs()).hour(Number(startTime.split(":")[0])).minute(Number(startTime.split(":")[1]));
+    const resolvedEndDate = (endDate ?? dayjs()).hour(Number(endTime.split(":")[0])).minute(Number(endTime.split(":")[1]));
 
     const eventData: Event = {
       title: name,
       description,
       participantLimits,
       price,
-      startDate: resolvedStartDate!,
-      endDate: resolvedEndDate!,
+      startDate: resolvedStartDate,
+      endDate: resolvedEndDate,
     };
 
     try {
@@ -111,6 +132,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
       console.error(err);
     }
   };
+
 
    const handleDeletion = async () => {
 
@@ -133,7 +155,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
             eventToEdit.startDate && eventToEdit.endDate
               ? dayjs(eventToEdit.startDate).isSame(dayjs(eventToEdit.endDate), 'day')
                 ? dayjs(eventToEdit.startDate).format('DD-MM-YY')
-                : `${dayjs(eventToEdit.startDate).format('DD-MM-YY')} - ${dayjs(eventToEdit.endDate).format('DD-MM-YY')}`
+                : `${dayjs(eventToEdit.startDate).format('DD-MM-YY')} — ${dayjs(eventToEdit.endDate).format('DD-MM-YY')}`
               : eventToEdit.startDate
                 ? dayjs(eventToEdit.startDate).format('DD-MM-YY')
                 : ''
@@ -142,14 +164,14 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
             startDate && endDate
               ? dayjs(startDate).isSame(dayjs(endDate), 'day')
                 ? dayjs(startDate).format('DD-MM-YY')
-                : `${dayjs(startDate).format('DD-MM-YY')} - ${dayjs(endDate).format('DD-MM-YY')}`
+                : `${dayjs(startDate).format('DD-MM-YY')} — ${dayjs(endDate).format('DD-MM-YY')}`
               : startDate
                 ? dayjs(startDate).format('DD-MM-YY')
                 : ''
           }`
       }
-</DialogTitle>
-      <DialogContent>
+    </DialogTitle>
+    <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
             fullWidth
@@ -202,14 +224,20 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={handleSave}>
-          {eventToEdit ? 'Update Event' : 'Create Event'}
-        </Button>
-        {eventToEdit &&
-        <Button variant="contained" color="warning" onClick={handleDeletion}>
-          Delete Event
-        </Button>
-        }
+        {!eventToEdit ? (
+          <Button variant="contained" onClick={handleSave}>
+            Create Event
+          </Button>
+        ) : (
+          <>
+            <Button variant="contained" onClick={handleUpdate}>
+              Update Event
+            </Button>
+            <Button variant="contained" color="warning" onClick={handleDeletion}>
+              Delete Event
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   );

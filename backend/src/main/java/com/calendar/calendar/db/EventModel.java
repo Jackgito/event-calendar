@@ -2,9 +2,10 @@ package com.calendar.calendar.db;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 
 @Entity
-@Table(name = "events") // make sure the table is named "events"
+@Table(name = "events")
 public class EventModel {
 
     @Id
@@ -14,7 +15,7 @@ public class EventModel {
     private String title;
     private String description;
 
-    private int[] participantLimits;  // You may need to adjust how this is stored depending on DB
+    private int[] participantLimits;
 
     private double price;
 
@@ -22,7 +23,7 @@ public class EventModel {
 
     private OffsetDateTime endDate;
 
-    // Getters and setters for all fields
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -78,5 +79,18 @@ public class EventModel {
 
     public void setEndDate(OffsetDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    @Override
+    public String toString() {
+        return "EventModel{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", participantLimits=" + Arrays.toString(participantLimits) +
+                ", price=" + price +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                '}';
     }
 }

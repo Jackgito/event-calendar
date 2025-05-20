@@ -9,7 +9,7 @@ import type { EventInput, DatesSetArg } from '@fullcalendar/core';
 import type { DateClickArg } from '@fullcalendar/interaction';
 import dayjs, { Dayjs } from 'dayjs';
 import type { Event } from "../../types/globalTypes"
-import { saveEvent, getEvents, deleteEvent } from '@/API/eventService';
+import { saveEvent, getEvents, deleteEvent, updateEvent } from '@/API/eventService';
 import { useSnackbar } from '@context/SnackbarContext';
 import type { AxiosError } from 'axios';
 import type { EventClickArg } from '@fullcalendar/core';
@@ -61,7 +61,6 @@ export default function EventCalendar () {
     fetchEvents(start, end);
   };
 
-
   const handleDateClick = (arg: DateClickArg) => {
     const clickedDate = dayjs(arg.dateStr);
     setStartDate(clickedDate);
@@ -98,13 +97,10 @@ export default function EventCalendar () {
     try {
       await saveEvent(eventData);
       showSnackbar(
-        selectedEvent ? 'Event updated successfully!' : 'Event created successfully!',
+        'Event created successfully!',
         'success'
       );
-      setModalOpen(false);
-      setStartDate(null);
-      setEndDate(null);
-      setSelectedEvent(null);
+      handleCloseModal();
 
       await refreshCalendar();
 
@@ -115,14 +111,29 @@ export default function EventCalendar () {
     }
   };
 
+  const handleUpdateEvent = async (eventId: string, eventData: Event): Promise<void> => {
+    try {
+      await updateEvent(eventId, eventData);
+      showSnackbar(
+        'Event updated successfully!',
+        'success'
+      );
+      handleCloseModal();
+
+      await refreshCalendar();
+
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const message = axiosError.message ?? 'Failed to update event. Please try again.';
+      showSnackbar(message, 'error');
+    }
+  };
+
   const handleDeleteEvent = async (eventId: string): Promise<void> => {
     try {
       await deleteEvent(eventId);
       showSnackbar("Event deleted successfully!", 'success');
-      setModalOpen(false);
-      setStartDate(null);
-      setEndDate(null);
-      setSelectedEvent(null);
+      handleCloseModal();
 
       await refreshCalendar();
 
@@ -189,6 +200,7 @@ export default function EventCalendar () {
           onClose={handleCloseModal}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
+          onUpdate={handleUpdateEvent}
           eventToEdit={selectedEvent} // null when creating
         />
       )}
