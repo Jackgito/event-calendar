@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -79,13 +77,13 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
         const decoded: DecodedToken = jwtDecode(token);
 
         const user = {
-          id: decoded.id,
+          id: Number(decoded.id),
           username: decoded.username,
           role:
             decoded.role === "ADMIN" || decoded.role === "USER"
               ? decoded.role
               : "GUEST",
-        } as { id: string; username: string; role: import("@/context/AuthenticationContext").UserRole };
+        } as { id: number; username: string; role: import("@/context/AuthenticationContext").UserRole };
 
         setUser(user);
         showSnackbar("Login successful", "success");

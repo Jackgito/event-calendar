@@ -20,7 +20,7 @@ import { useAuthentication } from '@/context/AuthenticationContext';
 import { logout } from '@/API/authService';
 import { useSnackbar } from '@context/SnackbarContext';
 
-const navItems = [];
+// const navItems = [];
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -65,13 +65,13 @@ export default function Navbar() {
         logo
       </Typography> */}
       <List>
-        {navItems.map((item) => (
+        {/* {navItems.map((item) => (
           <ListItem key={item} disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
               <ListItemText primary={item} />
             </ListItemButton>
           </ListItem>
-        ))}
+        ))} */}
         {(!user) ? (
           <>
             <ListItem disablePadding>
