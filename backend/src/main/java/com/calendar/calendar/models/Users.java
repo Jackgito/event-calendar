@@ -1,6 +1,9 @@
 package com.calendar.calendar.models;
 
 import jakarta.persistence.*;
+import com.calendar.calendar.models.*;
+
+import java.util.Set;
 
 @Entity
 public class Users {
@@ -13,6 +16,9 @@ public class Users {
     private String password;
 
     private String role = "USER"; // "Switch this to ADMIN if you want to create admin user
+
+    @ManyToMany(mappedBy = "participants")
+    private Set<EventModel> events;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -70,4 +76,13 @@ public class Users {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public Set<EventModel> getEvents() {
+        return events;
+    }
+
+    public void setEvents(Set<EventModel> events) {
+        this.events = events;
+    }
+
 }

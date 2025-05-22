@@ -10,7 +10,7 @@ export interface Event {
   endDate: Dayjs;
 
   description: string;
-  participantLimits: number[];
+  participantLimit: number;
   price: number;
   participants?: string[];
 

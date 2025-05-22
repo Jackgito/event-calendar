@@ -43,19 +43,23 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
   }
 };
 
+// Removes / adds user to participants for the event and returns the updated event
 export const updateParticipation = async (
   eventId: string, 
-  userId: string, 
-): Promise<void> => {
+  userId: number, 
+): Promise<Event> => {
   try {
     const response = await api.post(`/events/${eventId}/participation`, { userId });
-    if (response.data?.success === false) {
-      throw new Error(response.data.message || 'Failed to update participation');
-    }
+    
+    const responseEvent = response.data.event;
+
+    return responseEvent;
   } catch (error) {
     handleApiError(error, 'Failed to update participation');
   }
 };
+
+
 
 export const getEvents = async (start: Dayjs, end: Dayjs): Promise<Event[]> => {
   const response = await api.get<Event[]>(`/events`, {
@@ -64,5 +68,11 @@ export const getEvents = async (start: Dayjs, end: Dayjs): Promise<Event[]> => {
       end: end.toISOString(),
     },
   });
+
+  return response.data;
+};
+
+export const getEventById = async (eventId: string): Promise<Event> => {
+  const response = await api.get<Event>(`/events/${eventId}`);
   return response.data;
 };

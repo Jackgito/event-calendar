@@ -40,7 +40,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [participantLimits, setParticipantLimits] = useState<number[]>([4, 20]);
+  const [participantLimit, setParticipantLimit] = useState<number>(4);
   const [price, setPrice] = useState(0);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
@@ -53,7 +53,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
       if (eventToEdit) {
         setName(eventToEdit.title);
         setDescription(eventToEdit.description || '');
-        setParticipantLimits(eventToEdit.participantLimits || [4, 20]);
+        setParticipantLimit(eventToEdit.participantLimit || 4);
         setPrice(eventToEdit.price ?? 0);
         setStartTime(dayjs(eventToEdit.startDate).format("HH:mm"));
         setEndTime(dayjs(eventToEdit.endDate).format("HH:mm"));
@@ -61,17 +61,13 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
       } else {
         setName('');
         setDescription('');
-        setParticipantLimits([4, 20]);
+        setParticipantLimit(4);
         setPrice(0);
         setStartTime('09:00');
         setEndTime('10:00');
       }
     }
   }, [open, eventToEdit]);
-
-  const handleParticipantChange = (_event: React.SyntheticEvent | Event, newValue: number | number[]) => {
-    setParticipantLimits(Array.isArray(newValue) ? newValue : [newValue, newValue]);
-  };
 
   const handleUpdate = async () => {
     if (!name || name.trim().length < 3) {
@@ -86,7 +82,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
       ...eventToEdit,
       title: name,
       description,
-      participantLimits,
+      participantLimit,
       price,
       startDate: resolvedStartDate,
       endDate: resolvedEndDate,
@@ -114,7 +110,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
     const eventData: Event = {
       title: name,
       description,
-      participantLimits,
+      participantLimit,
       price,
       startDate: resolvedStartDate,
       endDate: resolvedEndDate,
@@ -204,12 +200,12 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
 
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
-              Participant Limits: {participantLimits[0]} - {participantLimits[1]}
+              Participant Limit: {participantLimit}
             </Typography>
             <Slider
               getAriaLabel={() => 'Participant range'}
-              value={participantLimits}
-              onChangeCommitted={handleParticipantChange}
+              value={participantLimit} 
+              onChange={(_event, newLimit) => setParticipantLimit(newLimit as number)}
               valueLabelDisplay="auto"
               sx={{ flex: 1 }}
               min={1}

@@ -1,35 +1,18 @@
 package com.calendar.calendar.models;
 
-import jakarta.persistence.*;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Entity
-@Table(name = "events")
-public class EventModel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class EventDTO {
     private Long id;
-
     private String title;
     private String description;
-
     private int participantLimit;
-
     private double price;
-
     private OffsetDateTime startDate;
     private OffsetDateTime endDate;
-
-    @ManyToMany
-    @JoinTable(
-            name = "event_participants",
-            joinColumns = @JoinColumn(name = "event_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<Users> participants = new HashSet<>();
+    private List<String> participants;
 
     // Getters and setters
 
@@ -54,20 +37,24 @@ public class EventModel {
     public OffsetDateTime getEndDate() { return endDate; }
     public void setEndDate(OffsetDateTime endDate) { this.endDate = endDate; }
 
-    public Set<Users> getParticipants() { return participants; }
-    public void setParticipants(Set<Users> participants) { this.participants = participants; }
+    public List<String> getParticipants() { return participants; }
+    public void setParticipants(List<String> participants) { this.participants = participants; }
 
-    @Override
-    public String toString() {
-        return "EventModel{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", participantLimit=" + participantLimit +
-                ", price=" + price +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
-                ", participants=" + participants +
-                '}';
+    public static EventDTO from(EventModel model) {
+        EventDTO dto = new EventDTO();
+        dto.setId(model.getId());
+        dto.setTitle(model.getTitle());
+        dto.setDescription(model.getDescription());
+        dto.setParticipantLimit(model.getParticipantLimit());
+        dto.setPrice(model.getPrice());
+        dto.setStartDate(model.getStartDate());
+        dto.setEndDate(model.getEndDate());
+        dto.setParticipants(
+                model.getParticipants().stream()
+                        .map(Users::getUsername)
+                        .collect(Collectors.toList())
+        );
+        return dto;
     }
+
 }

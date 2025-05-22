@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 export type UserRole = 'ADMIN' | 'USER' | 'GUEST';
 
 interface User {
-  id: string;
+  id: number;
   username: string;
   role: UserRole;
 }

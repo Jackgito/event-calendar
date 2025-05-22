@@ -45,8 +45,9 @@ export default function EventCalendar () {
         end: dayjs(evt.endDate).toISOString(),
         extendedProps: {
           description: evt.description,
-          participantLimits: evt.participantLimits,
+          participantLimit: evt.participantLimit,
           price: evt.price,
+          participants: evt.participants
         },
       }));
 
@@ -82,7 +83,8 @@ export default function EventCalendar () {
       description: ext.description,
       startDate: dayjs(clickInfo.event.start),
       endDate: dayjs(clickInfo.event.end),
-      participantLimits: ext.participantLimits,
+      participantLimit: ext.participantLimit,
+      participants: ext.participants,
       price: ext.price,
     };
 
@@ -205,7 +207,7 @@ export default function EventCalendar () {
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
           onUpdate={handleUpdateEvent}
-          eventToEdit={selectedEvent} // null when creating
+          eventToEdit={selectedEvent}
         />
       )}
 

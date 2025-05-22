@@ -1,5 +1,6 @@
 package com.calendar.calendar.controller;
 
+import com.calendar.calendar.models.EventDTO;
 import com.calendar.calendar.models.EventModel;
 import com.calendar.calendar.service.EventService;
 import org.springframework.http.HttpStatus;
@@ -31,18 +32,26 @@ public class EventController {
     }
 
     /**
-     * Returns a list of events that overlap with the specified date range.
-     * @param start ISO 8601 start date string
-     * @param end ISO 8601 end date string
-     * @return List of events overlapping the date range
+     * Returns a list of events that overlap with the specified date range,
+     * including only usernames of participants.
      */
     @GetMapping
-    public List<EventModel> getEvents(@RequestParam String start, @RequestParam String end) {
+    public List<EventDTO> getEvents(@RequestParam String start, @RequestParam String end) {
         OffsetDateTime startDateTime = OffsetDateTime.parse(start);
         OffsetDateTime endDateTime = OffsetDateTime.parse(end);
-
         return eventService.getEventsBetween(startDateTime, endDateTime);
     }
+
+    /*
+    @GetMapping("/{id}")
+    public ResponseEntity<Void> getEventById(@PathVariable Long id) {
+        if (eventService.getEventById(id)) {
+            return ResponseEntity.noContent().build(); // 204
+        } else {
+            return ResponseEntity.notFound().build(); // 404
+        }
+    }
+    */
 
     /**
      * Deletes an event by ID.
@@ -86,16 +95,32 @@ public class EventController {
                     "message", "Invalid or missing userId"
             ));
         }
-        Long userId = ((Number) userIdObj).longValue();
-        boolean updated = eventService.updateParticipation(eventId, userId);
 
-        if (!updated) {
+        Long userId = ((Number) userIdObj).longValue();
+
+        EventModel updatedEvent;
+        try {
+            updatedEvent = eventService.updateParticipation(eventId, userId);
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", ex.getMessage()
+            ));
+        }
+
+        if (updatedEvent == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                     "success", false,
                     "message", "Event not found"
             ));
         }
 
-        return ResponseEntity.ok(Map.of("success", true));
+        EventDTO eventDTO = EventDTO.from(updatedEvent);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "event", eventDTO
+        ));
     }
+
 }
