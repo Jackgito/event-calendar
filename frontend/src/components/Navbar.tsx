@@ -17,7 +17,8 @@ import { useTheme } from "@mui/material/styles"
 import LoginModal from "./Authentication/LoginModal"
 import RegisterModal from "./Authentication/RegisterModal"
 import { useAuthentication } from '@/context/AuthenticationContext';
-import { logout } from "../utils/authApi"
+import { logout } from '@/API/authService';
+import { useSnackbar } from '@context/SnackbarContext';
 
 const navItems = [];
 
@@ -28,7 +29,9 @@ export default function Navbar() {
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const { isUser, isAdmin, setRole } = useAuthentication()
+  const { user, setUser } = useAuthentication()
+
+  const { showSnackbar } = useSnackbar();
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState)
@@ -52,7 +55,8 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     logout();
-    setRole("guest");
+    showSnackbar("Logged out succesfully", "success")
+    setUser(null);
   };
 
   const drawer = (
@@ -68,7 +72,7 @@ export default function Navbar() {
             </ListItemButton>
           </ListItem>
         ))}
-        {(!isUser && !isAdmin) ? (
+        {(!user) ? (
           <>
             <ListItem disablePadding>
               <ListItemButton sx={{ textAlign: "center" }} onClick={handleLoginOpen}>
@@ -111,7 +115,7 @@ export default function Navbar() {
             {/* logo */}
           </Typography>
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, ml: 2 }}>
-            {(!isUser && !isAdmin) ? (
+            {(!user) ? (
               <>
                 <Button color="inherit" variant="outlined" onClick={handleLoginOpen}>
                   Login

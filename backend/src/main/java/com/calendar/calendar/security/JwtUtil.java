@@ -1,5 +1,6 @@
-package com.calendar.calendar.config;
+package com.calendar.calendar.security;
 
+import com.calendar.calendar.models.Users;
 import io.jsonwebtoken.*;
 import org.springframework.stereotype.Component;
 import java.util.Date;
@@ -8,21 +9,26 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private final String SECRET_KEY = "secret";
-    private final long EXPIRATION_TIME = 86400000; // 1 day
+    private final String SECRET_KEY = "jN3lY8oC+ZaOQmlnJmzVGKmpw0gxznmyjvIsx0s1JRh5aM4eW2B9ty1xL5KF9U3HZaOQmlnJmzVGKmpw0gxznmyjvIsx0s1JRh5aM4eW2B9ty1xL5KF9U3HZaOQmlnJmzVGKmpw0gxznmyjvIsx0s1JRh5aM4eW2B9ty1xL5KF9U3H";
 
-    public String generateToken(String username, String role) {
+    public String generateToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role); // Include role in JWT claims
+        claims.put("id", user.getId());
+        claims.put("username", user.getUsername());
+        claims.put("email", user.getEmail());
+        claims.put("role", user.getRole());
+
+        long EXPIRATION_TIME = 86400000; // 1 day
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getUsername()) // this can stay as username
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
+
 
 
     public String extractUsername(String token) {

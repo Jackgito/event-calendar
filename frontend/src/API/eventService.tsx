@@ -12,7 +12,6 @@ export function handleApiError(error: unknown, fallbackMessage = 'An unexpected 
 
 export const saveEvent = async (eventData: Event): Promise<void> => {
   try {
-    console.log(eventData)
     const response = await api.post('/events', eventData);
     if (response.data?.success === false) {
       throw new Error(response.data.message || 'Failed to save event');
@@ -24,7 +23,6 @@ export const saveEvent = async (eventData: Event): Promise<void> => {
 
 export const updateEvent = async (eventId: string, eventData: Event): Promise<void> => {
   try {
-    console.log(eventData)
     const response = await api.put(`/events/${eventId}`, eventData);
     if (response.data?.success === false) {
       throw new Error(response.data.message || 'Failed to edit event');
@@ -42,6 +40,20 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
     }
   } catch (error) {
     handleApiError(error, 'Failed to delete event');
+  }
+};
+
+export const updateParticipation = async (
+  eventId: string, 
+  userId: string, 
+): Promise<void> => {
+  try {
+    const response = await api.post(`/events/${eventId}/participation`, { userId });
+    if (response.data?.success === false) {
+      throw new Error(response.data.message || 'Failed to update participation');
+    }
+  } catch (error) {
+    handleApiError(error, 'Failed to update participation');
   }
 };
 

@@ -1,12 +1,15 @@
 package com.calendar.calendar.repository;
 
-import com.calendar.calendar.models.User;
+import com.calendar.calendar.models.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
-@Repository
-public interface UserRepo extends JpaRepository<User, Integer> {
+import java.util.Optional;
 
-        User findByUsername(String username);
+public interface UserRepository extends JpaRepository<Users, Long> {
+        Optional<Users> findByUsername(String username);
+        Optional<Users> findByEmail(String email);
 
+        // New method to find by username or email
+        Optional<Users> findByUsernameOrEmail(String username, String email);
 }

@@ -1,8 +1,8 @@
-package com.calendar.calendar.db;
+package com.calendar.calendar.models;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
+import java.util.*;
 
 @Entity
 @Table(name = "events")
@@ -16,6 +16,8 @@ public class EventModel {
     private String description;
 
     private int[] participantLimits;
+
+    private int[] participants;
 
     private double price;
 
@@ -81,13 +83,22 @@ public class EventModel {
         this.endDate = endDate;
     }
 
+    public int[] getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(int[] participants) {
+        this.participants = participants;
+    }
+
     @Override
     public String toString() {
         return "EventModel{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", participantLimits=" + Arrays.toString(participantLimits) +
+                ", participantLimits=" + participantLimits +
+                ", participants=" + participants +
                 ", price=" + price +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +

@@ -69,14 +69,9 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
     }
   }, [open, eventToEdit]);
 
-  useEffect(() => {
-    console.log(startTime);
-  }, [startTime]);
-
   const handleParticipantChange = (_event: React.SyntheticEvent | Event, newValue: number | number[]) => {
     setParticipantLimits(Array.isArray(newValue) ? newValue : [newValue, newValue]);
   };
-
 
   const handleUpdate = async () => {
     if (!name || name.trim().length < 3) {

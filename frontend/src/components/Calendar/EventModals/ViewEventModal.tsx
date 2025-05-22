@@ -10,6 +10,9 @@ import {
 } from '@mui/material';
 import type { Event } from '../../../types/globalTypes';
 import dayjs from 'dayjs';
+import { useAuthentication } from '@/context/AuthenticationContext';
+import { useSnackbar } from '@/context/SnackbarContext';
+import {updateParticipation } from '@/API/eventService';
 
 interface ViewEventModalProps {
   open: boolean;
@@ -17,11 +20,22 @@ interface ViewEventModalProps {
   onClose: () => void;
 }
 
-function handleEventRegistration()  {
-  console.log("placeholder");
-}
-
 const ViewEventModal: React.FC<ViewEventModalProps> = ({ open, event, onClose }) => {
+  
+  const { user } = useAuthentication();
+  const { showSnackbar } = useSnackbar();
+
+
+  function handleEventParticipation()  {
+    if (user && event) {
+      updateParticipation(event.id!, user.id! );
+    } else {
+      showSnackbar("Login to participate!")
+    }
+  }
+
+  console.log(event)
+
   if (!event) return null;
 
   return (
@@ -45,8 +59,8 @@ const ViewEventModal: React.FC<ViewEventModalProps> = ({ open, event, onClose })
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={handleEventRegistration}>
-          Register
+        <Button variant="contained" onClick={handleEventParticipation}>
+          Participate
         </Button>
       </DialogActions>
     </Dialog>

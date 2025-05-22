@@ -1,26 +1,31 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React, { useState } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import CloseIcon from "@mui/icons-material/Close";
 
-import { useState } from "react"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Typography from "@mui/material/Typography"
-import Modal from "@mui/material/Modal"
-import TextField from "@mui/material/TextField"
-import IconButton from "@mui/material/IconButton"
-import InputAdornment from "@mui/material/InputAdornment"
-import Visibility from "@mui/icons-material/Visibility"
-import VisibilityOff from "@mui/icons-material/VisibilityOff"
-import Divider from "@mui/material/Divider"
-import GoogleIcon from "@mui/icons-material/Google"
-import GitHubIcon from "@mui/icons-material/GitHub"
-import Stack from "@mui/material/Stack"
-import CloseIcon from "@mui/icons-material/Close"
+import { useSnackbar } from "@context/SnackbarContext";
+import { useAuthentication } from "@/context/AuthenticationContext";
+import { login } from "@/API/authService";
+import { jwtDecode } from "jwt-decode";
 
 interface LoginModalProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
+}
+
+interface DecodedToken {
+  id: string;
+  username: string;
+  role: "ADMIN" | "USER" | "GUEST" | string;
 }
 
 const style = {
@@ -33,36 +38,75 @@ const style = {
   borderRadius: 2,
   boxShadow: 24,
   p: 4,
-}
+};
 
 export default function LoginModal({ open, onClose }: LoginModalProps) {
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [emailError, setEmailError] = useState(false)
-  const [passwordError, setPasswordError] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
 
-  const handleClickShowPassword = () => setShowPassword((show) => !show)
+  const { showSnackbar } = useSnackbar();
+  const { setUser } = useAuthentication();
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-  }
+    event.preventDefault();
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // Simple validation
-    setEmailError(!email)
-    setPasswordError(!password)
+    const emailValid = !!email;
+    const passwordValid = !!password;
 
-    if (email && password) {
+    setEmailError(!emailValid);
+    setPasswordError(!passwordValid);
 
-      onClose()
+    if (!emailValid || !passwordValid) return;
+
+    try {
+      const token = await login(email, password);
+
+      if (!token) {
+        showSnackbar("Login failed", "error");
+        return;
+      }
+
+      try {
+        const decoded: DecodedToken = jwtDecode(token);
+
+        const user = {
+          id: decoded.id,
+          username: decoded.username,
+          role:
+            decoded.role === "ADMIN" || decoded.role === "USER"
+              ? decoded.role
+              : "GUEST",
+        } as { id: string; username: string; role: import("@/context/AuthenticationContext").UserRole };
+
+        setUser(user);
+        showSnackbar("Login successful", "success");
+        onClose();
+      } catch (err) {
+        console.error("Invalid token", err);
+        showSnackbar("Login failed: invalid token", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showSnackbar("Login failed", "error");
     }
-  }
+  };
 
   return (
-    <Modal open={open} onClose={onClose} aria-labelledby="login-modal-title" aria-describedby="login-modal-description">
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="login-modal-title"
+      aria-describedby="login-modal-description"
+    >
       <Box sx={style}>
         <IconButton
           aria-label="close"
@@ -79,7 +123,11 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
         <Typography id="login-modal-title" variant="h5" component="h2" gutterBottom>
           Login
         </Typography>
-        <Typography id="login-modal-description" sx={{ mt: 1, mb: 3 }} color="text.secondary">
+        <Typography
+          id="login-modal-description"
+          sx={{ mt: 1, mb: 3 }}
+          color="text.secondary"
+        >
           Enter your credentials to access your account
         </Typography>
 
@@ -89,7 +137,7 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="Email / Username"
             name="email"
             autoComplete="email"
             value={email}
@@ -128,25 +176,8 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
             Sign In
           </Button>
-
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button size="small" onClick={onClose}>
-              Forgot password?
-            </Button>
-          </Box>
-
-          <Divider sx={{ my: 3 }}>or continue with</Divider>
-
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button variant="outlined" startIcon={<GoogleIcon />}>
-              Google
-            </Button>
-            <Button variant="outlined" startIcon={<GitHubIcon />}>
-              GitHub
-            </Button>
-          </Stack>
         </Box>
       </Box>
     </Modal>
-  )
+  );
 }

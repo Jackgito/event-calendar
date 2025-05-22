@@ -1,21 +1,24 @@
-package com.calendar.calendar.api;
+package com.calendar.calendar.controller;
 
-import com.calendar.calendar.db.EventModel;
-import com.calendar.calendar.db.EventRepository;
+import com.calendar.calendar.models.EventModel;
+import com.calendar.calendar.service.EventService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
-    public EventController(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
     /**
@@ -24,8 +27,7 @@ public class EventController {
     @PostMapping
     public EventModel createEvent(@RequestBody EventModel event) {
         System.out.println("Create event: " + event);
-
-        return eventRepository.save(event);
+        return eventService.createEvent(event);
     }
 
     /**
@@ -39,8 +41,7 @@ public class EventController {
         OffsetDateTime startDateTime = OffsetDateTime.parse(start);
         OffsetDateTime endDateTime = OffsetDateTime.parse(end);
 
-        // Fetch events overlapping the given range
-        return eventRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(endDateTime, startDateTime);
+        return eventService.getEventsBetween(startDateTime, endDateTime);
     }
 
     /**
@@ -50,8 +51,7 @@ public class EventController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        if (eventRepository.existsById(id)) {
-            eventRepository.deleteById(id);
+        if (eventService.deleteEvent(id)) {
             return ResponseEntity.noContent().build(); // 204
         } else {
             return ResponseEntity.notFound().build(); // 404
@@ -68,12 +68,34 @@ public class EventController {
     public ResponseEntity<EventModel> updateEvent(@PathVariable Long id, @RequestBody EventModel updatedEvent) {
         System.out.println("Received update for event ID " + id + ": " + updatedEvent);
 
-        return eventRepository.findById(id)
-                .map(existingEvent -> {
-                    updatedEvent.setId(id); // Ensure ID stays the same
-                    return ResponseEntity.ok(eventRepository.save(updatedEvent));
-                })
+        return eventService.updateEvent(id, updatedEvent)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Updates participant amount
+    @PostMapping("/{eventId}/participation")
+    public ResponseEntity<?> setParticipation(
+            @PathVariable Long eventId,
+            @RequestBody Map<String, Object> payload
+    ) {
+        Object userIdObj = payload.get("userId");
+        if (!(userIdObj instanceof Number)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Invalid or missing userId"
+            ));
+        }
+        Long userId = ((Number) userIdObj).longValue();
+        boolean updated = eventService.updateParticipation(eventId, userId);
+
+        if (!updated) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "Event not found"
+            ));
+        }
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
 }

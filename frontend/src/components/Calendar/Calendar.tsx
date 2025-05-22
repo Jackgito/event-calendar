@@ -1,8 +1,12 @@
 import { useState } from 'react';
+
 import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-// import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import dayGridPlugin from '@fullcalendar/daygrid';         // Month view
+import timeGridPlugin from '@fullcalendar/timegrid';       // Week and day views
+import listPlugin from '@fullcalendar/list';              // List view
+import interactionPlugin from '@fullcalendar/interaction'; // For clicks, selections, etc.
+
+
 import AdminEventModal from './EventModals/AdminEventModal';
 import ViewEventModal from './EventModals/ViewEventModal'; // <-- Create this
 import type { EventInput, DatesSetArg } from '@fullcalendar/core';
@@ -167,7 +171,7 @@ export default function EventCalendar () {
   return (
     <div className='calendarContainer'>
       <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         firstDay={1}
         initialView="dayGridMonth"
         events={events}
@@ -187,7 +191,7 @@ export default function EventCalendar () {
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth',
         }}
         // displayEventTime={false}
       />

@@ -12,6 +12,7 @@ export interface Event {
   description: string;
   participantLimits: number[];
   price: number;
+  participants?: string[];
 
   repetition?: {
     frequency: "daily" | "weekly" | "monthly" | "yearly";

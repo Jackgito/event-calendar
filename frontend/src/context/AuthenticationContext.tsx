@@ -1,47 +1,54 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
-export type UserRole = 'admin' | 'user' | 'guest';
+export type UserRole = 'ADMIN' | 'USER' | 'GUEST';
+
+interface User {
+  id: string;
+  username: string;
+  role: UserRole;
+}
 
 interface AuthenticationContextType {
-  role: UserRole;
-  getUserRole: () => UserRole;
+  user: User | null;
+  setUser: (user: User | null) => void;
+  isLoggedIn: boolean;
   isAdmin: boolean;
   isUser: boolean;
   isGuest: boolean;
-  isLoggedIn: boolean;
-  setRole: (role: UserRole) => void;
+  getUserRole: () => UserRole;
 }
 
 const AuthenticationContext = createContext<AuthenticationContextType | undefined>(undefined);
 
 export const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole>('guest');
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Example: check local storage for a JWT
     const token = localStorage.getItem('authToken');
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        setRole(decoded.role); // assuming your JWT has { role: 'admin' | 'user' }
+        setUser({
+          id: decoded.id,
+          username: decoded.username,
+          role: decoded.role as UserRole,
+        });
       } catch (err) {
         console.error("Invalid token:", err);
-        setRole('guest');
+        setUser(null);
       }
     }
   }, []);
 
-  const isLoggedIn = role !== 'guest';
-
   const contextValue: AuthenticationContextType = {
-    role,
-    getUserRole: () => role,
-    isAdmin: role === 'admin',
-    isUser: role === 'user',
-    isGuest: role === 'guest',
-    isLoggedIn,
-    setRole,
+    user,
+    setUser,
+    isLoggedIn: !!user && user.role !== 'GUEST',
+    isAdmin: user?.role === 'ADMIN',
+    isUser: user?.role === 'USER',
+    isGuest: !user || user.role === 'GUEST',
+    getUserRole: () => user?.role ?? 'GUEST',
   };
 
   return (

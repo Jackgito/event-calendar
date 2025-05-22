@@ -1,4 +1,4 @@
-package com.calendar.calendar;
+package com.calendar.calendar.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

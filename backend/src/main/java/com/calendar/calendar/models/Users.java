@@ -3,7 +3,7 @@ package com.calendar.calendar.models;
 import jakarta.persistence.*;
 
 @Entity
-public class User {
+public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,14 +12,27 @@ public class User {
     private String username;
     private String password;
 
-    private String role; // "ADMIN" or "USER"
+    private String role = "USER"; // "Switch this to ADMIN if you want to create admin user
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 
     // Constructors
-    public User() {}
+    public Users() {}
 
-    public User(Long id, String username, String password, String role) {
+    public Users(Long id, String username, String email, String password, String role) {
         this.id = id;
         this.username = username;
+        this.email = email;
         this.password = password;
         this.role = role;
     }

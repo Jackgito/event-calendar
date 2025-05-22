@@ -1,4 +1,4 @@
-package com.calendar.calendar.db;
+package com.calendar.calendar.repository;
 
 import com.calendar.calendar.models.EventModel;
 import org.springframework.data.jpa.repository.JpaRepository;

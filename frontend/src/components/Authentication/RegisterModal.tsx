@@ -1,26 +1,28 @@
-import type React from "react"
+"use client";
 
-import { useState } from "react"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Typography from "@mui/material/Typography"
-import Modal from "@mui/material/Modal"
-import TextField from "@mui/material/TextField"
-import IconButton from "@mui/material/IconButton"
-import InputAdornment from "@mui/material/InputAdornment"
-import Visibility from "@mui/icons-material/Visibility"
-import VisibilityOff from "@mui/icons-material/VisibilityOff"
-import CloseIcon from "@mui/icons-material/Close"
-import Checkbox from "@mui/material/Checkbox"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import Link from "@mui/material/Link"
-import { useAuthentication } from "../../context/AuthenticationContext"
-import { register } from "../../utils/authApi"
+import React, { useState } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import CloseIcon from "@mui/icons-material/Close";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Link from "@mui/material/Link";
+
 import { useSnackbar } from '@context/SnackbarContext';
+import { useAuthentication } from "@/context/AuthenticationContext";
+import { register } from '@/API/authService'; // your register API function
+import { jwtDecode } from "jwt-decode";
 
 interface RegisterModalProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 const style = {
@@ -35,68 +37,82 @@ const style = {
   p: 4,
   maxHeight: "90vh",
   overflow: "auto",
-}
+};
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const { showSnackbar } = useSnackbar();
+  const { setUser } = useAuthentication();
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [agreeToTerms, setAgreeToTerms] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  const [nameError, setNameError] = useState(false)
-  const [emailError, setEmailError] = useState(false)
-  const [passwordError, setPasswordError] = useState(false)
-  const [confirmPasswordError, setConfirmPasswordError] = useState(false)
-  const [termsError, setTermsError] = useState(false)
+  const [usernameError, setUsernameError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  const [termsError, setTermsError] = useState(false);
 
-  const handleClickShowPassword = () => setShowPassword((show) => !show)
-  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show)
-  const { setRole } = useAuthentication()
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-  }
+    event.preventDefault();
+  };
 
   const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const validName = !!name;
+    const validUsername = username.trim().length > 0;
     const validEmail = isValidEmail(email);
-    const validPassword = !!password;
+    const validPassword = password.length > 0;
     const passwordsMatch = password === confirmPassword;
     const agreed = agreeToTerms;
 
-    setNameError(!validName);
+    setUsernameError(!validUsername);
     setEmailError(!validEmail);
     setPasswordError(!validPassword);
     setConfirmPasswordError(!passwordsMatch);
     setTermsError(!agreed);
 
-    if (!validName || !validEmail || !validPassword || !passwordsMatch || !agreed) {
+    if (!validUsername || !validEmail || !validPassword || !passwordsMatch || !agreed) {
       return;
     }
 
     try {
-      const response = await register(name, email, password);
-      if (response?.role === "admin") {
-        setRole("admin");
-      } else if (response?.role === "user") {
-        setRole("user");
+      // Call your register API - it should return a token or user info after successful registration
+      const response = await register(username, email, password);
+
+      if (!response) {
+        showSnackbar("Registration failed", "error");
+        return;
       }
+
+      // If your register returns a JWT token, decode it to get user info
+      if (response.token) {
+        const decoded: any = jwtDecode(response.token);
+        const newUser = {
+          id: decoded.id,
+          username: decoded.username,
+          role: decoded.role === "ADMIN" || decoded.role === "USER" ? decoded.role : "GUEST",
+        };
+        setUser(newUser);
+        localStorage.setItem("authToken", response.token); // Save token if needed
+      }
+
+      showSnackbar("Registration succesfull", "success");
       onClose();
     } catch (error) {
-      showSnackbar("Registration failed", "error");
       console.error(error);
+      showSnackbar("Registration failed", "error");
     }
   };
-
 
   return (
     <Modal
@@ -130,14 +146,13 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
             margin="normal"
             required
             fullWidth
-            id="name"
-            label="Full Name"
-            name="name"
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={nameError}
-            helperText={nameError ? "Name is required" : ""}
+            id="username"
+            label="Username"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={usernameError}
+            helperText={usernameError ? "Username is required" : ""}
           />
           <TextField
             margin="normal"
@@ -145,18 +160,16 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
             fullWidth
             id="email"
             label="Email Address"
-            name="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}
-            helperText={emailError ? "Email is required" : ""}
+            helperText={emailError ? "Valid email is required" : ""}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="password"
             label="Password"
             type={showPassword ? "text" : "password"}
             id="password"
@@ -184,7 +197,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
             margin="normal"
             required
             fullWidth
-            name="confirmPassword"
             label="Confirm Password"
             type={showConfirmPassword ? "text" : "password"}
             id="confirmPassword"
@@ -243,5 +255,5 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
         </Box>
       </Box>
     </Modal>
-  )
+  );
 }
