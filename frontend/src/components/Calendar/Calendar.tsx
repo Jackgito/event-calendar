@@ -30,7 +30,7 @@ export default function EventCalendar () {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [currentStart, setCurrentStart] = useState<Dayjs | null>(null);
   const [currentEnd, setCurrentEnd] = useState<Dayjs | null>(null);
-
+  const [currentView, setCurrentView] = useState<string>('dayGridMonth'); // <== Add this
   const { isAdmin } = useAuthentication();
   const { showSnackbar } = useSnackbar();
 
@@ -61,6 +61,7 @@ export default function EventCalendar () {
   const handleDatesSet = (arg: DatesSetArg) => {
     const start = dayjs(arg.start);
     const end = dayjs(arg.end);
+    setCurrentView(arg.view.type);
     setCurrentStart(start);
     setCurrentEnd(end);
     fetchEvents(start, end);
@@ -68,6 +69,8 @@ export default function EventCalendar () {
 
   const handleDateClick = (arg: DateClickArg) => {
     const clickedDate = dayjs(arg.dateStr);
+    const hour = clickedDate.hour(); // This extracts the hour (0-23)
+
     setStartDate(clickedDate);
     setEndDate(clickedDate);
     setSelectedEvent(null); // reset selected event for create mode
@@ -152,7 +155,13 @@ export default function EventCalendar () {
 
   const handleDateSelection = (selectInfo: { start: Date; end: Date }) => {
     setStartDate(dayjs(selectInfo.start));
-    setEndDate(dayjs(selectInfo.end).subtract(1, 'second'))
+
+    if (currentView === 'dayGridMonth') {
+      setEndDate(dayjs(selectInfo.end).subtract(1, 'second'));
+    } else {
+      setEndDate(dayjs(selectInfo.end));
+    }
+
     setModalOpen(true);
   };
 

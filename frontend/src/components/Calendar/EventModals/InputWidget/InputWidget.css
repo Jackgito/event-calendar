@@ -1,26 +1,27 @@
-.price-picker {
+.input-widget {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
 }
 
-.price-field {
+.input-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-width: 140px;
 }
 
-.price-field.active {
+.input-group.active {
   border-color: #0070f3;
 }
 
-.price-field.invalid input {
+.input-group.invalid input {
   border-color: #ff4d4f;
   background-color: rgba(255, 77, 79, 0.05);
 }
 
-.price-input-container {
+.input-container {
   display: flex;
   flex-direction: column;
   border: 1px solid #e2e8f0;
@@ -28,7 +29,7 @@
   overflow: hidden;
 }
 
-.price-control {
+.input-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,12 +40,12 @@
   color: #6b7280;
 }
 
-.price-control:hover {
+.input-button:hover {
   background-color: #f1f5f9;
   color: #111827;
 }
 
-.price-separator {
+.input-separator {
   display: flex;
   align-items: flex-end;
   padding-bottom: 10px;
@@ -52,6 +53,13 @@
   font-size: 14px;
 }
 
-.price-label {
+.input-label {
   text-align: center;
+  font-weight: bold;
+}
+
+.input-field {
+  text-align: center;
+  min-height: 50px;
+  font-size: 1.1rem;
 }

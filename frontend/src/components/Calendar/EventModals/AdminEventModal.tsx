@@ -7,11 +7,9 @@ import {
   Button,
   TextField,
   Box,
-  Slider,
-  Typography
 } from '@mui/material';
-import { TimeRangePicker } from './TimeRangePicker/TimeRangePicker';
-import { PriceSelector } from './PriceSelector/PriceSelector';
+import { TimeRangePicker } from './InputWidget/TimeRangePicker';
+import { NumberSelector } from './InputWidget/NumberSelector';	
 import { Dayjs } from 'dayjs';
 import { useSnackbar } from '@context/SnackbarContext';
 import type { Event } from "../../../types/globalTypes"
@@ -42,30 +40,26 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
   const [description, setDescription] = useState('');
   const [participantLimit, setParticipantLimit] = useState<number>(4);
   const [price, setPrice] = useState(0);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
+  const formatTime = (date: Dayjs | string | null | undefined) =>
+    date ? dayjs(date).format("HH:mm") : "10:00";
 
+  const [startTime, setStartTime] = useState(
+    eventToEdit ? formatTime(eventToEdit.startDate) : formatTime(startDate)
+  );
+  const [endTime, setEndTime] = useState(
+    eventToEdit ? formatTime(eventToEdit.endDate) : formatTime(endDate)
+  );
   const { showSnackbar } = useSnackbar();
 
-  // Populate fields on open/edit
+  // Populate fields on edit
   useEffect(() => {
-    if (open) {
-      if (eventToEdit) {
+    if (open && eventToEdit) {
         setName(eventToEdit.title);
         setDescription(eventToEdit.description || '');
         setParticipantLimit(eventToEdit.participantLimit || 4);
         setPrice(eventToEdit.price ?? 0);
         setStartTime(dayjs(eventToEdit.startDate).format("HH:mm"));
         setEndTime(dayjs(eventToEdit.endDate).format("HH:mm"));
-
-      } else {
-        setName('');
-        setDescription('');
-        setParticipantLimit(4);
-        setPrice(0);
-        setStartTime('09:00');
-        setEndTime('10:00');
-      }
     }
   }, [open, eventToEdit]);
 
@@ -138,8 +132,12 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
     }
   };
 
+  if (startTime === "Invalid date" || endTime === "Invalid date") {
+    return null;
+  }
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md">
     <DialogTitle>
       {eventToEdit
         ? `Edit Event: ${
@@ -180,7 +178,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TimeRangePicker
               initialStartTime={startTime}
               initialEndTime={endTime}
@@ -190,15 +188,26 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
               }}
             />
 
-            <PriceSelector
-              initialPrice={price}
-              onPriceChange={setPrice}
-              minPrice={0}
-              maxPrice={1000}
+            <NumberSelector
+              initialValue={price}
+              onValueChange={setPrice}
+              min={0}
+              step={5}
+              mouseStep={0.1}
+              label="Price (€)"
+            />
+
+            <NumberSelector
+              initialValue={participantLimit}
+              onValueChange={setParticipantLimit}
+              min={1}
+              step={5}
+              mouseStep={1}
+              label="Participant Limit"
             />
           </Box>
 
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
               Participant Limit: {participantLimit}
             </Typography>
@@ -211,25 +220,30 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
               min={1}
               max={100}
             />
-          </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
+          </Box> */}
+
         {!eventToEdit ? (
-          <Button variant="contained" onClick={handleSave}>
-            Create Event
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button sx={{width: "140px"}} variant="contained" onClick={handleSave}>
+              Create Event
+            </Button>
+          </Box>
         ) : (
-          <>
-            <Button variant="contained" onClick={handleUpdate}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button sx={{width: "140px"}} variant="contained" onClick={handleUpdate}>
               Update Event
             </Button>
-            <Button variant="contained" color="warning" onClick={handleDeletion}>
+            <Button sx={{width: "140px"}} variant="contained" color="warning" onClick={handleDeletion}>
               Delete Event
             </Button>
-          </>
+        
+          </Box>
         )}
-      </DialogActions>
+
+
+        </Box>
+      </DialogContent>
+
     </Dialog>
   );
 };

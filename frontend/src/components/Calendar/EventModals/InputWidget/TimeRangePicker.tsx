@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react"
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-import "./TimeRangePicker.css"
+import "./InputWidget.css"
 
 interface TimeRangePickerProps {
   onTimeChange?: (startTime: string, endTime: string) => void
@@ -154,14 +154,14 @@ export function TimeRangePicker({
   }
 
   return (
-    <div className="time-range-picker">
+    <div className="input-widget">
       <div
-        className={`time-field ${activeField === "start" ? "active" : ""}`}
+        className={`input-group ${activeField === "start" ? "active" : ""}`}
       >
-        <label className="time-label" htmlFor="start-time">Start Time</label>
-        <div className="time-input-container">
+        <label className="input-label" htmlFor="start-time">Start Time</label>
+        <div className="input-container">
           <button
-            className="time-control"
+            className="input-button"
             onClick={() => handleHourChange(1, "start")}
             type="button"
           >
@@ -181,7 +181,7 @@ export function TimeRangePicker({
             className="input-field"
           />
           <button
-            className="time-control"
+            className="input-button"
             onClick={() => handleHourChange(-1, "start")}
             type="button"
           >
@@ -190,11 +190,11 @@ export function TimeRangePicker({
         </div>
       </div>
 
-      <div className={`time-field ${activeField === "end" ? "active" : ""}`}>
-        <label className="time-label" htmlFor="end-time">End Time</label>
-        <div className="time-input-container">
+      <div className={`input-group ${activeField === "end" ? "active" : ""}`}>
+        <label className="input-label" htmlFor="end-time">End Time</label>
+        <div className="input-container">
           <button
-            className="time-control"
+            className="input-button"
             onClick={() => handleHourChange(1, "end")}
             type="button"
           >
@@ -214,7 +214,7 @@ export function TimeRangePicker({
             className="input-field"
           />
           <button
-            className="time-control"
+            className="input-button"
             onClick={() => handleHourChange(-1, "end")}
             type="button"
           >
