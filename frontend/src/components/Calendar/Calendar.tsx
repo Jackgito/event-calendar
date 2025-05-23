@@ -69,8 +69,6 @@ export default function EventCalendar () {
 
   const handleDateClick = (arg: DateClickArg) => {
     const clickedDate = dayjs(arg.dateStr);
-    const hour = clickedDate.hour(); // This extracts the hour (0-23)
-
     setStartDate(clickedDate);
     setEndDate(clickedDate);
     setSelectedEvent(null); // reset selected event for create mode

@@ -3,7 +3,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Button,
   TextField,
   Box,
@@ -41,7 +40,7 @@ const AdminEventModal: React.FC<CreateEventModalProps> = ({
   const [participantLimit, setParticipantLimit] = useState<number>(4);
   const [price, setPrice] = useState(0);
   const formatTime = (date: Dayjs | string | null | undefined) =>
-    date ? dayjs(date).format("HH:mm") : "10:00";
+  date ? dayjs(date).format("HH:mm") : "10:00";
 
   const [startTime, setStartTime] = useState(
     eventToEdit ? formatTime(eventToEdit.startDate) : formatTime(startDate)
